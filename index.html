@@ -307,6 +307,32 @@ function saveTasks(){
   }
 }
 
+/* ---------- 音声認識結果の補正辞書 ----------
+   左側（聞き取られやすい言い方）→ 右側（正式に変換したい表記）
+   ここに追加していけば、今後どんどん増やせます。
+   例: 'たかし' : 'たかしさん',
+*/
+const NAME_DICTIONARY = {
+  'さき': 'さきさん',
+  'あすか': 'あすかさん',
+  'あけちゃん': 'あけちゃん',
+  'よしみ': 'よしみさん',
+  '友美': '友美先生',
+  'エリ': '恵理'
+};
+
+function applyNameDictionary(text){
+  let result = text;
+  // 長い単語から先に置き換える（短い単語が長い単語の一部を誤って壊すのを防ぐため）
+  const keys = Object.keys(NAME_DICTIONARY).sort((a,b)=>b.length - a.length);
+  for(const key of keys){
+    if(result.includes(key)){
+      result = result.split(key).join(NAME_DICTIONARY[key]);
+    }
+  }
+  return result;
+}
+
 function pad2(n){ return String(n).padStart(2,'0'); }
 function toDateStr(d){
   return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
@@ -526,8 +552,10 @@ function renderAll(){
   renderWaiting();
 }
 
-function addTaskFromText(transcript){
-  if(!transcript || !transcript.trim()) return;
+function addTaskFromText(rawTranscript){
+  if(!rawTranscript || !rawTranscript.trim()) return;
+  // ここで辞書変換を実行 → これより後の解析・表示・保存はすべて変換後のテキストを使う
+  const transcript = applyNameDictionary(rawTranscript.trim());
   const parsed = parseTaskLocal(transcript);
   pendingTask = {
     id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
