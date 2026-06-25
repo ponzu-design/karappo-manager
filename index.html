@@ -252,6 +252,22 @@
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
+  /* ── 人名リスト ────────────────────────────── */
+  .names-section{border-top:1px solid var(--sage-line);padding-top:14px;margin-top:16px;}
+  .names-section-title{font-size:12.5px;font-weight:600;color:var(--ink);margin-bottom:4px;}
+  .names-section-sub{font-size:11px;color:var(--ink-soft);margin:0 0 10px;line-height:1.5;}
+  .names-tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:22px;}
+  .names-tag{
+    display:inline-flex;align-items:center;gap:3px;
+    background:#EDF5F0;border-radius:10px;
+    padding:3px 6px 3px 10px;font-size:11px;color:#3E5A50;
+  }
+  .names-del{
+    border:none;background:transparent;color:#9AAAA4;
+    font-size:13px;cursor:pointer;line-height:1;padding:0 2px;
+  }
+  .names-empty{font-size:11px;color:var(--ink-soft);}
+
   /* ── AI ステータス ─────────────────────────── */
   .cp-ai-status{
     font-size:11px;color:var(--ink-soft);
@@ -414,6 +430,16 @@
       <input id="dictAddTo" type="text" placeholder="正式な表記">
       <button class="dict-add-btn" id="dictAddBtn">追加</button>
     </div>
+
+    <div class="names-section">
+      <div class="names-section-title">よく使う名前</div>
+      <p class="names-section-sub">登録した名前はAI補正の参考にします。音声認識で近い音が出ても正しく補正されやすくなります。</p>
+      <div class="names-tag-list" id="nameEntryList"></div>
+      <div class="dict-add-row">
+        <input id="nameAddInput" type="text" placeholder="例：友美先生、パパ、たろう" style="flex:1;">
+        <button class="dict-add-btn" id="nameAddBtn">追加</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -450,6 +476,9 @@ const dictEntryList = document.getElementById('dictEntryList');
 const dictAddFrom   = document.getElementById('dictAddFrom');
 const dictAddTo     = document.getElementById('dictAddTo');
 const dictAddBtn    = document.getElementById('dictAddBtn');
+const nameEntryList = document.getElementById('nameEntryList');
+const nameAddInput  = document.getElementById('nameAddInput');
+const nameAddBtn    = document.getElementById('nameAddBtn');
 
 /* ---------- state ------------------------------------------- */
 let tasks = [];
@@ -552,6 +581,44 @@ function addDictEntry(from, to){
 function deleteDictEntry(id){
   dict = dict.filter(d => d.id !== id);
   saveDict();
+}
+
+/* ---------- name list --------------------------------------- */
+const NAMES_KEY = 'karappo_names_v1';
+let nameList = [];
+
+function loadNames(){
+  try{
+    const raw = localStorage.getItem(NAMES_KEY);
+    nameList = raw ? JSON.parse(raw) : [];
+  }catch(e){ nameList = []; }
+}
+function saveNames(){
+  try{ localStorage.setItem(NAMES_KEY, JSON.stringify(nameList)); }
+  catch(e){ showToast('保存に失敗しました'); }
+}
+function addName(name){
+  if(nameList.some(n => n.name === name)) return;
+  nameList.push({
+    id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2,5),
+    name,
+    createdAt: new Date().toISOString()
+  });
+  saveNames();
+}
+function deleteNameEntry(id){
+  nameList = nameList.filter(n => n.id !== id);
+  saveNames();
+}
+function renderNameEntries(){
+  nameEntryList.innerHTML = nameList.length === 0
+    ? '<span class="names-empty">まだ登録されていません</span>'
+    : nameList.map(n => `
+        <span class="names-tag">
+          ${escapeHtml(n.name)}
+          <button class="names-del" data-nameid="${escapeHtml(n.id)}" title="削除">×</button>
+        </span>
+      `).join('');
 }
 
 /* ---------- toast ------------------------------------------- */
@@ -813,7 +880,8 @@ async function aiCorrect(text){
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         text,
-        dict: dict.map(d => ({from: d.from, to: d.to})),
+        dict:  dict.map(d => ({from: d.from, to: d.to})),
+        names: nameList.map(n => n.name),
       }),
     });
     if(!res.ok) return null;
@@ -991,6 +1059,7 @@ function renderDictEntries(){
 
 dictOpenBtn.addEventListener('click', () => {
   renderDictEntries();
+  renderNameEntries();
   dictOverlay.style.display = 'flex';
 });
 dictCloseBtn.addEventListener('click', () => {
@@ -1015,6 +1084,22 @@ dictAddBtn.addEventListener('click', () => {
   dictAddTo.value   = '';
   renderDictEntries();
   showToast(`「${from} → ${to}」を追加しました`);
+});
+
+nameAddBtn.addEventListener('click', () => {
+  const name = nameAddInput.value.trim();
+  if(!name){ showToast('名前を入力してください'); return; }
+  addName(name);
+  nameAddInput.value = '';
+  renderNameEntries();
+  showToast(`「${name}」を追加しました`);
+});
+nameEntryList.addEventListener('click', (e) => {
+  const btn = e.target.closest('.names-del');
+  if(!btn) return;
+  deleteNameEntry(btn.dataset.nameid);
+  renderNameEntries();
+  showToast('削除しました');
 });
 
 /* ---------- voice recognition ------------------------------- */
@@ -1115,6 +1200,7 @@ waitingArea.addEventListener('click',  handleListClick);
 waitingArea.addEventListener('change', handleListChange);
 
 /* ---------- init ------------------------------------------- */
+loadNames();
 loadDict();
 loadTasks();
 renderAll();

@@ -5,11 +5,14 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { text, dict } = req.body || {};
+  const { text, dict, names } = req.body || {};
   if (!text) return res.status(400).json({ error: 'text is required' });
 
   const dictHint = Array.isArray(dict) && dict.length > 0
     ? '\n変換辞書（必ず優先して適用すること）:\n' + dict.map(d => `  ${d.from} → ${d.to}`).join('\n')
+    : '';
+  const namesHint = Array.isArray(names) && names.length > 0
+    ? '\nよく使う名前（音声が近い発音なら、この名前に補正すること）:\n  ' + names.join('、')
     : '';
 
   try {
@@ -25,11 +28,12 @@ module.exports = async function handler(req, res) {
           {
             role: 'system',
             content: `あなたはタスク管理アプリの音声入力補正AIです。
-音声認識されたテキストを、タスク文として自然な日本語に整えてください。${dictHint}
+音声認識されたテキストを、タスク文として自然な日本語に整えてください。${dictHint}${namesHint}
 
 ルール：
 - 音声認識の誤字・誤変換を文脈で補正する（例：変身待ち→返信待ち、確認まち→確認待ち）
 - 辞書に登録された変換を必ず適用する
+- よく使う名前リストの名前に近い音声は、そのリストの名前に補正する
 - タスクの意味・内容は変えない
 - 補正後のテキストのみを返す（説明・コメントは不要）
 - 短く、タスクとして自然な表現にする`,
