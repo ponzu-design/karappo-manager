@@ -252,13 +252,6 @@
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-  /* ── orb processing state ──────────────────── */
-  .orb.processing{
-    background:linear-gradient(135deg,#b2d8f0,#d4eaf7);
-    animation:orb-process 1.4s ease-in-out infinite;
-  }
-  @keyframes orb-process{0%,100%{box-shadow:0 8px 32px rgba(100,180,220,.25)}50%{box-shadow:0 8px 48px rgba(100,180,220,.55)}}
-
   /* ── AI ステータス ─────────────────────────── */
   .cp-ai-status{
     font-size:11px;color:var(--ink-soft);
@@ -1022,162 +1015,60 @@ dictAddBtn.addEventListener('click', () => {
   showToast(`「${from} → ${to}」を追加しました`);
 });
 
-/* ---------- audio recording (Whisper) ----------------------- */
-let isRecording    = false;
-let mediaRecorder  = null;
-let audioChunks    = [];
-let audioStream    = null;
-let silenceRafId   = null;
+/* ---------- voice recognition ------------------------------- */
+let recognition = null;
+let isRecording  = false;
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-// Blob → base64 文字列（data:... プレフィックスを除去）
-function blobToBase64(blob){
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result.split(',')[1]);
-    reader.onerror   = reject;
-    reader.readAsDataURL(blob);
-  });
-}
+if(SpeechRecognition){
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ja-JP';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
 
-// Whisper + GPT 補正 API を呼んでタスク作成
-async function sendAudioToWhisper(blob, mimeType){
-  orbHint.textContent = '文字起こし中…';
-  orb.classList.add('processing');
-  try{
-    const base64 = await blobToBase64(blob);
-    const res = await fetch('/api/transcribe', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        audio: base64,
-        mimeType,
-        dict: dict.map(d => ({from: d.from, to: d.to})),
-      }),
-    });
-    if(!res.ok) throw new Error('API error ' + res.status);
-    const data = await res.json();
-    const text = (data.corrected || data.transcript || '').trim();
-    if(text){
-      // Whisper + GPT 済みのテキスト → ローカル辞書だけ追加適用してタスク化
-      const {result: finalText, applied} = applyDict(text);
-      const parsed = parseTaskLocal(finalText);
-      pendingTask = {
-        id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        title:    parsed.title,
-        category: parsed.category,
-        deadline: parsed.deadline,
-        priority: parsed.priority,
-        done:      false,
-        createdAt: new Date().toISOString(),
-        waitStatus:'self',
-        _raw: text,
-      };
-      showConfirmPanel(pendingTask, applied);
-    }else{
-      showToast('音声を聞き取れませんでした');
-      stopRecordingUI();
-    }
-  }catch(e){
-    console.error('Whisper error:', e);
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    addTaskFromText(transcript);
+  };
+  recognition.onerror = () => {
     showToast('うまく聞き取れませんでした');
     stopRecordingUI();
-  }finally{
-    orb.classList.remove('processing');
-  }
-}
-
-async function startRecording(){
-  try{
-    audioStream = await navigator.mediaDevices.getUserMedia({audio: true});
-  }catch(e){
-    showToast('マイクを使えませんでした');
-    return;
-  }
-
-  // AudioContext で音量を計測（無音検知・小音量継続のため）
-  const audioCtx  = new AudioContext();
-  const source    = audioCtx.createMediaStreamSource(audioStream);
-  const analyser  = audioCtx.createAnalyser();
-  analyser.fftSize = 256;
-  source.connect(analyser);
-  const freqData  = new Uint8Array(analyser.frequencyBinCount);
-
-  const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
-  mediaRecorder  = new MediaRecorder(audioStream, {mimeType});
-  audioChunks    = [];
-
-  mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) audioChunks.push(e.data); };
-  mediaRecorder.onstop = async () => {
-    audioStream.getTracks().forEach(t => t.stop());
-    audioCtx.close();
-    cancelAnimationFrame(silenceRafId);
-    const blob = new Blob(audioChunks, {type: mimeType});
-    if(blob.size < 2000){
-      showToast('音声が短すぎます。もう一度お試しください。');
-      stopRecordingUI();
-      return;
-    }
-    await sendAudioToWhisper(blob, mimeType);
   };
-
-  mediaRecorder.start(100);
-  startRecordingUI();
-
-  // 無音検知: 2秒の無音で自動停止。小音量中は継続。
-  let silenceStart  = null;
-  const recordStart = Date.now();
-  const MAX_MS      = 30000; // 最大30秒
-  const SILENCE_MS  = 2000;  // 2秒の無音で終了
-  const VOL_THRESH  = 8;     // 平均音量しきい値（0〜255、小さいほど敏感）
-
-  function checkVolume(){
-    if(!isRecording){ return; }
-    if(Date.now() - recordStart > MAX_MS){
-      stopRecording();
-      return;
-    }
-    analyser.getByteFrequencyData(freqData);
-    const avg = freqData.reduce((s, v) => s + v, 0) / freqData.length;
-    if(avg < VOL_THRESH){
-      if(!silenceStart) silenceStart = Date.now();
-      else if(Date.now() - silenceStart > SILENCE_MS) { stopRecording(); return; }
-    }else{
-      silenceStart = null;
-    }
-    silenceRafId = requestAnimationFrame(checkVolume);
-  }
-  // 0.5秒後から無音検知開始（録音開始直後の無音を拾わないため）
-  setTimeout(() => { silenceRafId = requestAnimationFrame(checkVolume); }, 500);
-}
-
-function stopRecording(){
-  if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-  isRecording = false;
+  recognition.onend = () => {
+    stopRecordingUI();
+  };
+}else{
+  textFallback.style.display = 'flex';
+  orbHint.textContent = 'この端末では音声認識が使えないようです';
 }
 
 function startRecordingUI(){
   isRecording = true;
   orb.classList.add('recording');
-  orbHint.textContent = '録音中… もう一度タップで送信';
+  orbHint.textContent = '聞いています…';
 }
 function stopRecordingUI(){
   isRecording = false;
   orb.classList.remove('recording');
-  orbHint.textContent = 'タップして話しかけてください';
 }
 
 orb.addEventListener('click', () => {
   if(confirmPanel.style.display === 'block') return;
-  if(isRecording){
-    stopRecording();
+  if(!recognition){
+    textFallback.style.display = 'flex';
+    textInput.focus();
     return;
   }
-  // 0.3秒後に録音開始（タップ音を拾わないため）
-  startRecordingUI();
-  orbHint.textContent = '準備中…';
-  setTimeout(() => {
-    if(isRecording) startRecording(); // まだ録音状態なら開始
-  }, 300);
+  if(isRecording){
+    recognition.stop();
+    return;
+  }
+  try{
+    recognition.start();
+    startRecordingUI();
+  }catch(e){
+    showToast('マイクを使えませんでした');
+  }
 });
 
 textSend.addEventListener('click', () => {
