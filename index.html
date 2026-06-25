@@ -34,7 +34,7 @@
     padding:28px 20px 100px;
     position:relative;
   }
-  header{text-align:center;margin-bottom:18px;}
+  header{text-align:center;margin-bottom:18px;position:relative;}
   header .logo{
     font-family:'Zen Maru Gothic',sans-serif;
     font-weight:700;
@@ -45,6 +45,17 @@
     display:inline-block;margin-top:8px;
     font-size:10.5px;color:#7A6A2E;background:#F1EBD9;
     padding:3px 10px;border-radius:10px;
+  }
+  .dict-open-btn{
+    position:absolute;top:2px;right:0;
+    border:1px solid var(--sage-line);
+    background:var(--surface);
+    color:var(--ink-soft);
+    font-size:11.5px;
+    cursor:pointer;
+    padding:5px 12px;
+    border-radius:10px;
+    font-family:'Noto Sans JP',sans-serif;
   }
 
   .orb-zone{display:flex;flex-direction:column;align-items:center;margin:18px 0 30px;}
@@ -98,7 +109,22 @@
   .confirm-panel .cp-meta{
     font-size:11px;
     color:var(--ink-soft);
-    margin-bottom:12px;
+    margin-bottom:8px;
+  }
+  .cp-conv-list{
+    display:flex;flex-wrap:wrap;gap:6px;
+    margin-bottom:10px;
+  }
+  .cp-conv-badge{
+    display:inline-flex;align-items:center;gap:3px;
+    background:var(--sage);border-radius:10px;
+    padding:3px 6px 3px 10px;
+    font-size:11px;color:#3E5A50;
+  }
+  .cp-conv-del{
+    border:none;background:transparent;
+    color:#9AAAA4;font-size:13px;cursor:pointer;
+    line-height:1;padding:0 2px;
   }
   .confirm-panel .cp-question{
     font-size:12px;
@@ -122,12 +148,39 @@
   }
   .cp-option.self{border-color:var(--accent);color:#9A4B2E;background:var(--accent-soft);}
   .cp-option.wait{border-color:#C9C0E6;color:var(--wait-ink);background:var(--wait-bg);}
+  .cp-reg-section{
+    border-top:1px solid var(--sage-line);
+    padding-top:10px;margin-top:10px;
+  }
+  .cp-reg-toggle{
+    background:transparent;border:none;
+    color:var(--ink-soft);font-size:12px;
+    text-decoration:underline;cursor:pointer;
+    display:block;
+  }
+  .cp-reg-form{
+    display:flex;align-items:center;gap:6px;
+    flex-wrap:wrap;margin-top:8px;
+  }
+  .cp-reg-form input{
+    flex:1;min-width:70px;
+    border:1px solid var(--sage-line);
+    border-radius:10px;padding:6px 10px;
+    font-size:12.5px;background:#fff;color:var(--ink);
+  }
+  .cp-reg-arrow{color:#C3D6CD;font-size:12px;flex:0 0 auto;}
+  .cp-reg-save{
+    border:none;background:var(--sage);color:#3E5A50;
+    padding:6px 12px;border-radius:10px;
+    font-size:12px;font-weight:500;cursor:pointer;
+  }
   .cp-cancel{
     display:block;
     margin:10px auto 0;
     border:none;background:transparent;
     color:#9AAAA4;font-size:11.5px;
     text-decoration:underline;
+    cursor:pointer;
   }
 
   section.block{margin-top:30px;}
@@ -198,6 +251,83 @@
     opacity:0;pointer-events:none;transition:all .3s ease;max-width:80%;text-align:center;
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ── AI ステータス ─────────────────────────── */
+  .cp-ai-status{
+    font-size:11px;color:var(--ink-soft);
+    margin:-4px 0 8px;
+    animation:ai-pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes ai-pulse{0%,100%{opacity:.35}50%{opacity:1}}
+
+  /* ── 変換辞書 ──────────────────────────────── */
+  .dict-overlay{
+    position:fixed;inset:0;
+    background:rgba(43,58,54,.45);
+    display:flex;align-items:flex-end;justify-content:center;
+    z-index:900;
+  }
+  .dict-sheet{
+    width:100%;max-width:480px;
+    background:var(--surface);
+    border-radius:24px 24px 0 0;
+    padding:24px 20px 52px;
+    max-height:75vh;overflow-y:auto;
+  }
+  .dict-sheet-header{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:4px;
+  }
+  .dict-sheet-title{
+    font-family:'Zen Maru Gothic',sans-serif;
+    font-size:16px;font-weight:700;color:var(--ink);
+  }
+  .dict-close-btn{
+    border:none;background:transparent;
+    color:var(--ink-soft);font-size:22px;cursor:pointer;
+    line-height:1;padding:0;
+  }
+  .dict-sheet-sub{
+    font-size:12px;color:var(--ink-soft);
+    margin:4px 0 16px;line-height:1.7;
+  }
+  .dict-entry{
+    display:flex;align-items:center;gap:6px;
+    padding:10px 12px;
+    background:var(--bg);border-radius:12px;margin-bottom:8px;
+    font-size:13px;
+  }
+  .de-from{color:var(--ink-soft);flex:0 0 auto;}
+  .de-arrow{color:#C3D6CD;font-size:11px;flex:0 0 auto;}
+  .de-to{font-weight:500;color:var(--ink);flex:1;min-width:0;word-break:break-all;}
+  .de-del{
+    border:none;background:transparent;
+    color:#C3D6CD;font-size:17px;cursor:pointer;flex:0 0 auto;
+    line-height:1;
+  }
+  .dict-empty{
+    font-size:13px;color:var(--ink-soft);
+    background:var(--bg);border-radius:12px;
+    padding:16px;text-align:center;line-height:1.7;
+    margin-bottom:12px;
+  }
+  .dict-add-row{
+    display:flex;align-items:center;gap:6px;
+    padding-top:12px;border-top:1px solid var(--sage-line);
+    flex-wrap:wrap;
+  }
+  .dict-add-row input{
+    flex:1;min-width:80px;
+    border:1px solid var(--sage-line);
+    border-radius:10px;padding:8px 10px;
+    font-size:13px;background:#fff;color:var(--ink);
+  }
+  .dict-add-arrow{color:#C3D6CD;font-size:12px;flex:0 0 auto;}
+  .dict-add-btn{
+    border:none;background:var(--accent);color:#fff;
+    padding:8px 16px;border-radius:10px;
+    font-size:12.5px;font-weight:500;cursor:pointer;
+  }
 </style>
 </head>
 <body>
@@ -206,6 +336,7 @@
     <div class="logo">からっぽマネージャー</div>
     <div class="tagline">話すだけで、頭の中を置いていく</div>
     <div class="modebadge">簡易版（AIなし・端末内のみで判定）</div>
+    <button class="dict-open-btn" id="dictOpenBtn">変換辞書</button>
   </header>
 
   <div class="orb-zone">
@@ -222,13 +353,24 @@
 
     <div class="confirm-panel" id="confirmPanel" style="display:none;">
       <div class="cp-title" id="cpTitle"></div>
+      <div class="cp-ai-status" id="cpAiStatus" style="display:none;">AI補正中…</div>
       <div class="cp-meta" id="cpMeta"></div>
+      <div class="cp-conv-list" id="cpConvList"></div>
       <div class="cp-question">これは誰待ちですか？</div>
       <div class="cp-options">
         <div class="cp-option self" data-status="self">自分がやる</div>
         <div class="cp-option wait" data-status="reply">返信待ち</div>
         <div class="cp-option wait" data-status="material">素材待ち</div>
         <div class="cp-option wait" data-status="confirm">確認待ち</div>
+      </div>
+      <div class="cp-reg-section">
+        <button class="cp-reg-toggle" id="cpRegToggle">＋ この言葉の変換を登録する</button>
+        <div class="cp-reg-form" id="cpRegForm" style="display:none;">
+          <input id="cpRegFrom" type="text" placeholder="話した言葉">
+          <span class="cp-reg-arrow">→</span>
+          <input id="cpRegTo" type="text" placeholder="正式な表記">
+          <button class="cp-reg-save" id="cpRegSave">今後も使う</button>
+        </div>
       </div>
       <button class="cp-cancel" id="cpCancel">この内容を取り消す</button>
     </div>
@@ -257,44 +399,172 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- 変換辞書 設定シート -->
+<div class="dict-overlay" id="dictOverlay" style="display:none;">
+  <div class="dict-sheet">
+    <div class="dict-sheet-header">
+      <span class="dict-sheet-title">変換辞書</span>
+      <button class="dict-close-btn" id="dictCloseBtn">✕</button>
+    </div>
+    <p class="dict-sheet-sub">人名・会社名・サービス名・専門用語など、よく使う言葉の変換パターンを登録できます。<br>音声入力後に自動で変換されます。</p>
+    <div id="dictEntryList"></div>
+    <div class="dict-add-row">
+      <input id="dictAddFrom" type="text" placeholder="話した言葉">
+      <span class="dict-add-arrow">→</span>
+      <input id="dictAddTo" type="text" placeholder="正式な表記">
+      <button class="dict-add-btn" id="dictAddBtn">追加</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const STORAGE_KEY = 'karappo_tasks_v1';
+const DICT_KEY    = 'karappo_dict_v1';
 
-const orb = document.getElementById('orb');
-const orbHint = document.getElementById('orbHint');
+/* ---------- DOM refs ---------------------------------------- */
+const orb          = document.getElementById('orb');
+const orbHint      = document.getElementById('orbHint');
 const textFallback = document.getElementById('textFallback');
-const textInput = document.getElementById('textInput');
-const textSend = document.getElementById('textSend');
-const suggestArea = document.getElementById('suggestArea');
-const waitingArea = document.getElementById('waitingArea');
-const taskList = document.getElementById('taskList');
-const toastEl = document.getElementById('toast');
+const textInput    = document.getElementById('textInput');
+const textSend     = document.getElementById('textSend');
+const suggestArea  = document.getElementById('suggestArea');
+const waitingArea  = document.getElementById('waitingArea');
+const taskList     = document.getElementById('taskList');
+const toastEl      = document.getElementById('toast');
 const confirmPanel = document.getElementById('confirmPanel');
-const cpTitle = document.getElementById('cpTitle');
-const cpMeta = document.getElementById('cpMeta');
-const cpCancel = document.getElementById('cpCancel');
+const cpTitle      = document.getElementById('cpTitle');
+const cpMeta       = document.getElementById('cpMeta');
+const cpConvList   = document.getElementById('cpConvList');
+const cpAiStatus   = document.getElementById('cpAiStatus');
+const cpCancel     = document.getElementById('cpCancel');
+const cpRegToggle  = document.getElementById('cpRegToggle');
+const cpRegForm    = document.getElementById('cpRegForm');
+const cpRegFrom    = document.getElementById('cpRegFrom');
+const cpRegTo      = document.getElementById('cpRegTo');
+const cpRegSave    = document.getElementById('cpRegSave');
 
+const dictOpenBtn   = document.getElementById('dictOpenBtn');
+const dictOverlay   = document.getElementById('dictOverlay');
+const dictCloseBtn  = document.getElementById('dictCloseBtn');
+const dictEntryList = document.getElementById('dictEntryList');
+const dictAddFrom   = document.getElementById('dictAddFrom');
+const dictAddTo     = document.getElementById('dictAddTo');
+const dictAddBtn    = document.getElementById('dictAddBtn');
+
+/* ---------- state ------------------------------------------- */
 let tasks = [];
 let pendingTask = null;
 
-const WAIT_LABELS = {
-  self: '自分がやる',
-  reply: '返信待ち',
-  material: '素材待ち',
-  confirm: '確認待ち'
-};
+/* ---------- dictionary -------------------------------------- */
+let dict = [];
 
+const DICT_SEED = [
+  {from:'さき',     to:'さきさん'},
+  {from:'あすか',   to:'あすかさん'},
+  {from:'あけちゃん',to:'あけちゃん'},
+  {from:'よしみ',   to:'よしみさん'},
+  {from:'友美',     to:'友美先生'},
+  {from:'エリ',     to:'恵理'},
+];
+
+function loadDict(){
+  try{
+    const raw = localStorage.getItem(DICT_KEY);
+    if(raw){
+      dict = JSON.parse(raw);
+    }else{
+      dict = DICT_SEED.map((s, i) => ({
+        id: 'd_seed_' + i,
+        from: s.from,
+        to:   s.to,
+        createdAt: new Date().toISOString()
+      }));
+      saveDict();
+    }
+  }catch(e){
+    dict = [];
+  }
+}
+
+function saveDict(){
+  try{
+    localStorage.setItem(DICT_KEY, JSON.stringify(dict));
+  }catch(e){
+    showToast('辞書の保存に失敗しました');
+  }
+}
+
+/* ---------- voice misrecognition normalization --------------- */
+// Pure string→string transform applied before dictionary lookup.
+// Uses regex so all surface forms (町/まち/マチ) are caught in one rule.
+// Swap the body of normalizeText for an AI call without touching callers.
+const VOICE_CORRECTIONS = [
+  // 同音異義語: 返信(へんしん) → 変身(へんしん) と誤認識されるケース
+  // \s* で「変身 町」のように単語間にスペースが入るケースにも対応
+  [/変身\s*(待ち?|まち|マチ|町)/g, '返信待ち'],
+  // 〜待ち: 「待ち」が まち/マチ/町 と誤認識されるケース（スペースも許容）
+  [/(返信|連絡|返事|確認|回答|承認|素材|入稿|支払|受け取り)\s*(町|まち|マチ)/g, '$1待ち'],
+  // 締め切り の表記ゆれ（締切, 締め切, 締切り → 締め切り）
+  [/締め?切り?/g, '締め切り'],
+];
+
+function normalizeText(text){
+  let result = text;
+  for(const [pattern, replacement] of VOICE_CORRECTIONS){
+    result = result.replace(pattern, replacement);
+  }
+  if(result !== text){
+    console.log('[normalizeText]', JSON.stringify(text), '→', JSON.stringify(result));
+  }
+  return result;
+}
+
+function applyDict(text){
+  let result = text;
+  const applied = [];
+  const sorted = [...dict].sort((a, b) => b.from.length - a.from.length);
+  for(const entry of sorted){
+    if(result.includes(entry.from)){
+      const before = result;
+      result = result.split(entry.from).join(entry.to);
+      if(result !== before) applied.push(entry);
+    }
+  }
+  return {result, applied};
+}
+
+function addDictEntry(from, to){
+  const existing = dict.find(d => d.from === from);
+  if(existing){
+    existing.to = to;
+  }else{
+    dict.push({
+      id: 'd_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
+      from, to,
+      createdAt: new Date().toISOString()
+    });
+  }
+  saveDict();
+}
+
+function deleteDictEntry(id){
+  dict = dict.filter(d => d.id !== id);
+  saveDict();
+}
+
+/* ---------- toast ------------------------------------------- */
 function showToast(msg){
   toastEl.textContent = msg;
   toastEl.classList.add('show');
-  setTimeout(()=>toastEl.classList.remove('show'), 2400);
+  setTimeout(() => toastEl.classList.remove('show'), 2400);
 }
 
+/* ---------- task storage ------------------------------------ */
 function loadTasks(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     tasks = raw ? JSON.parse(raw) : [];
-    tasks.forEach(t=>{ if(!t.waitStatus) t.waitStatus = 'self'; });
+    tasks.forEach(t => { if(!t.waitStatus) t.waitStatus = 'self'; });
   }catch(e){
     tasks = [];
   }
@@ -307,50 +577,25 @@ function saveTasks(){
   }
 }
 
-/* ---------- 音声認識結果の補正辞書 ----------
-   左側（聞き取られやすい言い方）→ 右側（正式に変換したい表記）
-   ここに追加していけば、今後どんどん増やせます。
-   例: 'たかし' : 'たかしさん',
-*/
-const NAME_DICTIONARY = {
-  'さき': 'さきさん',
-  'あすか': 'あすかさん',
-  'あけちゃん': 'あけちゃん',
-  'よしみ': 'よしみさん',
-  '友美': '友美先生',
-  'エリ': '恵理'
-};
-
-function applyNameDictionary(text){
-  let result = text;
-  // 長い単語から先に置き換える（短い単語が長い単語の一部を誤って壊すのを防ぐため）
-  const keys = Object.keys(NAME_DICTIONARY).sort((a,b)=>b.length - a.length);
-  for(const key of keys){
-    if(result.includes(key)){
-      result = result.split(key).join(NAME_DICTIONARY[key]);
-    }
-  }
-  return result;
-}
-
-function pad2(n){ return String(n).padStart(2,'0'); }
+/* ---------- date / parse helpers ---------------------------- */
+function pad2(n){ return String(n).padStart(2, '0'); }
 function toDateStr(d){
   return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
 }
 function addDays(base, n){
   const d = new Date(base);
-  d.setDate(d.getDate()+n);
+  d.setDate(d.getDate() + n);
   return d;
 }
 const WEEKDAY_INDEX = {"日":0,"月":1,"火":2,"水":3,"木":4,"金":5,"土":6};
 
 function guessDeadline(text){
   const today = new Date();
-  today.setHours(0,0,0,0);
+  today.setHours(0, 0, 0, 0);
 
   if(text.includes('今日')) return toDateStr(today);
-  if(text.includes('明日')) return toDateStr(addDays(today,1));
-  if(text.includes('あさって') || text.includes('明後日')) return toDateStr(addDays(today,2));
+  if(text.includes('明日')) return toDateStr(addDays(today, 1));
+  if(text.includes('あさって') || text.includes('明後日')) return toDateStr(addDays(today, 2));
 
   const wdMatch = text.match(/([日月火水木金土])曜?日?まで/);
   if(wdMatch){
@@ -402,7 +647,7 @@ function guessPriority(text, deadline){
     return 'high';
   }
   if(deadline){
-    const today = new Date(); today.setHours(0,0,0,0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
     const dl = new Date(deadline);
     const diffDays = Math.round((dl - today) / 86400000);
     if(diffDays <= 2) return 'high';
@@ -415,8 +660,8 @@ function guessPriority(text, deadline){
 
 function guessTitle(text){
   let t = text.trim();
-  t = t.replace(/^(えーと|あの|そうだ|そういえば)、?\s*/,'');
-  if(t.length > 40) t = t.slice(0,40) + '…';
+  t = t.replace(/^(えーと|あの|そうだ|そういえば)、?\s*/, '');
+  if(t.length > 40) t = t.slice(0, 40) + '…';
   return t;
 }
 
@@ -426,9 +671,10 @@ function parseTaskLocal(transcript){
   const category = guessCategory(text);
   const priority = guessPriority(text, deadline);
   const title = guessTitle(text);
-  return { title, category, deadline, priority };
+  return {title, category, deadline, priority};
 }
 
+/* ---------- suggestions ------------------------------------- */
 const GENTLE_MESSAGES = [
   '30分だけ進めると気持ちが軽くなりそうです',
   '今日やるとスッキリしそうです',
@@ -439,8 +685,8 @@ const GENTLE_MESSAGES = [
 
 function buildSuggestionsLocal(openTasks){
   const selfTasks = openTasks.filter(t => t.waitStatus === 'self');
-  const priorityRank = { high:0, mid:1, low:2 };
-  const sorted = [...selfTasks].sort((a,b)=>{
+  const priorityRank = {high:0, mid:1, low:2};
+  const sorted = [...selfTasks].sort((a, b) => {
     const pr = priorityRank[a.priority] - priorityRank[b.priority];
     if(pr !== 0) return pr;
     if(a.deadline && b.deadline) return a.deadline < b.deadline ? -1 : 1;
@@ -448,11 +694,16 @@ function buildSuggestionsLocal(openTasks){
     if(b.deadline) return 1;
     return 0;
   });
-  return sorted.slice(0,3).map((t,i)=>({
+  return sorted.slice(0, 3).map((t, i) => ({
     id: t.id,
     message: GENTLE_MESSAGES[i % GENTLE_MESSAGES.length]
   }));
 }
+
+/* ---------- render helpers ---------------------------------- */
+const WAIT_LABELS = {
+  self:'自分がやる', reply:'返信待ち', material:'素材待ち', confirm:'確認待ち'
+};
 
 function categoryEmoji(c){
   return {"仕事":"💼","子供":"🧒","買い物":"🛒","家":"🏠","旅行":"✈️"}[c] || "✨";
@@ -465,25 +716,25 @@ function taskMetaHtml(t){
   return `
     <span class="tag">${t.category}</span>
     <span class="tag priority-${t.priority}">優先度: ${t.priority==='high'?'高':t.priority==='mid'?'中':'低'}</span>
-    ${t.deadline ? `<span class="tag deadline">〜${t.deadline}</span>`:''}
-    ${t.waitStatus !== 'self' ? `<span class="tag wait">${WAIT_LABELS[t.waitStatus]}</span>`:''}
+    ${t.deadline ? `<span class="tag deadline">〜${t.deadline}</span>` : ''}
+    ${t.waitStatus !== 'self' ? `<span class="tag wait">${WAIT_LABELS[t.waitStatus]}</span>` : ''}
   `;
 }
 
 function waitSelectHtml(t){
   return `
     <select class="wait-select" data-waitchange="${t.id}">
-      <option value="self" ${t.waitStatus==='self'?'selected':''}>自分がやる</option>
-      <option value="reply" ${t.waitStatus==='reply'?'selected':''}>返信待ち</option>
+      <option value="self"     ${t.waitStatus==='self'    ?'selected':''}>自分がやる</option>
+      <option value="reply"    ${t.waitStatus==='reply'   ?'selected':''}>返信待ち</option>
       <option value="material" ${t.waitStatus==='material'?'selected':''}>素材待ち</option>
-      <option value="confirm" ${t.waitStatus==='confirm'?'selected':''}>確認待ち</option>
+      <option value="confirm"  ${t.waitStatus==='confirm' ?'selected':''}>確認待ち</option>
     </select>
   `;
 }
 
 function renderTasks(){
-  const open = tasks.filter(t=>!t.done).sort((a,b)=>(a.createdAt<b.createdAt?1:-1));
-  const done = tasks.filter(t=>t.done);
+  const open = tasks.filter(t => !t.done).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  const done = tasks.filter(t => t.done);
   if(tasks.length === 0){
     taskList.innerHTML = '<div class="empty-note">ここにタスクが積まれていきます。</div>';
     return;
@@ -504,8 +755,8 @@ function renderTasks(){
 }
 
 function renderSuggestions(){
-  const open = tasks.filter(t=>!t.done);
-  const selfOpen = open.filter(t=>t.waitStatus === 'self');
+  const open = tasks.filter(t => !t.done);
+  const selfOpen = open.filter(t => t.waitStatus === 'self');
   if(selfOpen.length === 0){
     suggestArea.innerHTML = '<div class="empty-note">今は自分が動くタスクはなさそうです。とても良い状態です。</div>';
     return;
@@ -515,8 +766,8 @@ function renderSuggestions(){
     suggestArea.innerHTML = '<div class="empty-note">今日は何もしなくても大丈夫そうです。</div>';
     return;
   }
-  suggestArea.innerHTML = sugg.map(s=>{
-    const t = tasks.find(x=>x.id === s.id);
+  suggestArea.innerHTML = sugg.map(s => {
+    const t = tasks.find(x => x.id === s.id);
     if(!t) return '';
     return `<div class="suggest-card">
       <div class="msg">${escapeHtml(s.message)}</div>
@@ -526,7 +777,7 @@ function renderSuggestions(){
 }
 
 function renderWaiting(){
-  const waiting = tasks.filter(t=>!t.done && t.waitStatus !== 'self');
+  const waiting = tasks.filter(t => !t.done && t.waitStatus !== 'self');
   if(waiting.length === 0){
     waitingArea.innerHTML = '<div class="empty-note">今、誰か・何かを待っているタスクはありません。</div>';
     return;
@@ -552,29 +803,89 @@ function renderAll(){
   renderWaiting();
 }
 
-function addTaskFromText(rawTranscript){
+/* ---------- AI correction ----------------------------------- */
+async function aiCorrect(text){
+  try{
+    const res = await fetch('/api/correct', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        text,
+        dict: dict.map(d => ({from: d.from, to: d.to})),
+      }),
+    });
+    if(!res.ok) return null;
+    const data = await res.json();
+    return data.corrected || null;
+  }catch(e){
+    return null;
+  }
+}
+
+/* ---------- add task ---------------------------------------- */
+async function addTaskFromText(rawTranscript){
   if(!rawTranscript || !rawTranscript.trim()) return;
-  // ここで辞書変換を実行 → これより後の解析・表示・保存はすべて変換後のテキストを使う
-  const transcript = applyNameDictionary(rawTranscript.trim());
+  const raw = rawTranscript.trim();
+
+  // ローカル補正でまず即座に表示
+  const normalized = normalizeText(raw);
+  const {result: transcript, applied} = applyDict(normalized);
   const parsed = parseTaskLocal(transcript);
   pendingTask = {
-    id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
-    title: parsed.title,
+    id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    title:    parsed.title,
     category: parsed.category,
     deadline: parsed.deadline,
     priority: parsed.priority,
-    done: false,
-    createdAt: new Date().toISOString()
+    done:      false,
+    createdAt: new Date().toISOString(),
+    waitStatus:'self',
+    _raw: raw
   };
-  showConfirmPanel(pendingTask);
+  showConfirmPanel(pendingTask, applied);
+  cpAiStatus.style.display = 'block';
+
+  // AI補正（非同期、失敗してもローカル結果のまま続行）
+  const aiText = await aiCorrect(raw);
+  cpAiStatus.style.display = 'none';
+  if(aiText && aiText !== normalized){
+    const {result: aiTranscript, applied: aiApplied} = applyDict(aiText);
+    const aiParsed = parseTaskLocal(aiTranscript);
+    pendingTask.title    = aiParsed.title;
+    pendingTask.category = aiParsed.category;
+    pendingTask.deadline = aiParsed.deadline;
+    pendingTask.priority = aiParsed.priority;
+    showConfirmPanel(pendingTask, aiApplied);
+  }
 }
 
-function showConfirmPanel(t){
+/* ---------- confirm panel ----------------------------------- */
+function showConfirmPanel(t, conversions){
+  conversions = conversions || [];
+
   cpTitle.textContent = `${categoryEmoji(t.category)} ${t.title}`;
   const metaParts = [t.category];
   metaParts.push(t.priority==='high'?'優先度: 高':t.priority==='mid'?'優先度: 中':'優先度: 低');
   if(t.deadline) metaParts.push(`〜${t.deadline}`);
   cpMeta.textContent = metaParts.join(' ・ ');
+
+  if(conversions.length > 0){
+    cpConvList.innerHTML = conversions.map(c => `
+      <span class="cp-conv-badge">
+        ${escapeHtml(c.from)} → ${escapeHtml(c.to)}
+        <button class="cp-conv-del" data-dictid="${escapeHtml(c.id)}" title="この変換を削除">×</button>
+      </span>
+    `).join('');
+    cpConvList.style.display = 'flex';
+  }else{
+    cpConvList.innerHTML = '';
+    cpConvList.style.display = 'none';
+  }
+
+  cpRegForm.style.display = 'none';
+  cpRegFrom.value = '';
+  cpRegTo.value   = '';
+
   confirmPanel.style.display = 'block';
   orbHint.textContent = 'これは誰待ちですか？';
 }
@@ -587,6 +898,7 @@ function hideConfirmPanel(){
 function finalizePendingTask(waitStatus){
   if(!pendingTask) return;
   pendingTask.waitStatus = waitStatus;
+  delete pendingTask._raw;
   tasks.push(pendingTask);
   saveTasks();
   renderAll();
@@ -594,7 +906,7 @@ function finalizePendingTask(waitStatus){
   if(waitStatus === 'self'){
     orb.classList.add('releasing');
     showToast('置いていきました');
-    setTimeout(()=>{ orb.classList.remove('releasing'); }, 900);
+    setTimeout(() => { orb.classList.remove('releasing'); }, 900);
   }else{
     showToast(`【待機中】に入れました（${WAIT_LABELS[waitStatus]}）`);
   }
@@ -603,19 +915,109 @@ function finalizePendingTask(waitStatus){
   hideConfirmPanel();
 }
 
-confirmPanel.addEventListener('click', (e)=>{
+/* ---------- confirm panel events ---------------------------- */
+confirmPanel.addEventListener('click', (e) => {
   const opt = e.target.closest('.cp-option');
-  if(opt){
-    finalizePendingTask(opt.dataset.status);
-  }
+  if(opt) finalizePendingTask(opt.dataset.status);
 });
-cpCancel.addEventListener('click', ()=>{
+
+cpCancel.addEventListener('click', () => {
   pendingTask = null;
   hideConfirmPanel();
 });
 
+/* 変換バッジの × → 辞書から削除して再計算 */
+cpConvList.addEventListener('click', (e) => {
+  const btn = e.target.closest('.cp-conv-del');
+  if(!btn) return;
+  const id = btn.dataset.dictid;
+  deleteDictEntry(id);
+  showToast('変換を削除しました');
+  if(pendingTask && pendingTask._raw){
+    const {result, applied} = applyDict(normalizeText(pendingTask._raw));
+    const parsed = parseTaskLocal(result);
+    pendingTask.title    = parsed.title;
+    pendingTask.category = parsed.category;
+    pendingTask.deadline = parsed.deadline;
+    pendingTask.priority = parsed.priority;
+    showConfirmPanel(pendingTask, applied);
+  }
+});
+
+/* 変換登録フォームの開閉 */
+cpRegToggle.addEventListener('click', () => {
+  const open = cpRegForm.style.display !== 'none';
+  cpRegForm.style.display = open ? 'none' : 'flex';
+});
+
+/* 「今後も使う」→ 辞書に保存してタスクタイトルを更新 */
+cpRegSave.addEventListener('click', () => {
+  const from = cpRegFrom.value.trim();
+  const to   = cpRegTo.value.trim();
+  if(!from || !to){ showToast('変換前・後を入力してください'); return; }
+  addDictEntry(from, to);
+  cpRegForm.style.display = 'none';
+  cpRegFrom.value = '';
+  cpRegTo.value   = '';
+  showToast(`「${from} → ${to}」を記憶しました`);
+  if(pendingTask && pendingTask._raw){
+    const {result, applied} = applyDict(normalizeText(pendingTask._raw));
+    const parsed = parseTaskLocal(result);
+    pendingTask.title    = parsed.title;
+    pendingTask.category = parsed.category;
+    pendingTask.deadline = parsed.deadline;
+    pendingTask.priority = parsed.priority;
+    showConfirmPanel(pendingTask, applied);
+  }
+});
+
+/* ---------- dictionary settings ----------------------------- */
+function renderDictEntries(){
+  if(dict.length === 0){
+    dictEntryList.innerHTML = '<div class="dict-empty">まだ登録された言葉はありません。<br>よく使う人名・会社名などを登録しましょう。</div>';
+    return;
+  }
+  dictEntryList.innerHTML = dict.map(d => `
+    <div class="dict-entry">
+      <span class="de-from">${escapeHtml(d.from)}</span>
+      <span class="de-arrow">→</span>
+      <span class="de-to">${escapeHtml(d.to)}</span>
+      <button class="de-del" data-id="${escapeHtml(d.id)}" title="削除">×</button>
+    </div>
+  `).join('');
+}
+
+dictOpenBtn.addEventListener('click', () => {
+  renderDictEntries();
+  dictOverlay.style.display = 'flex';
+});
+dictCloseBtn.addEventListener('click', () => {
+  dictOverlay.style.display = 'none';
+});
+dictOverlay.addEventListener('click', (e) => {
+  if(e.target === dictOverlay) dictOverlay.style.display = 'none';
+});
+dictEntryList.addEventListener('click', (e) => {
+  const btn = e.target.closest('.de-del');
+  if(!btn) return;
+  deleteDictEntry(btn.dataset.id);
+  renderDictEntries();
+  showToast('削除しました');
+});
+dictAddBtn.addEventListener('click', () => {
+  const from = dictAddFrom.value.trim();
+  const to   = dictAddTo.value.trim();
+  if(!from || !to){ showToast('変換前・後を入力してください'); return; }
+  addDictEntry(from, to);
+  dictAddFrom.value = '';
+  dictAddTo.value   = '';
+  renderDictEntries();
+  showToast(`「${from} → ${to}」を追加しました`);
+});
+
+/* ---------- voice recognition ------------------------------- */
 let recognition = null;
-let isRecording = false;
+let isRecording  = false;
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 if(SpeechRecognition){
@@ -676,27 +1078,22 @@ textSend.addEventListener('click', () => {
   addTaskFromText(v);
 });
 textInput.addEventListener('keydown', (e) => {
-  if(e.key === 'Enter'){
-    textSend.click();
-  }
+  if(e.key === 'Enter') textSend.click();
 });
 
+/* ---------- task list events -------------------------------- */
 function handleListClick(e){
   const checkBtn = e.target.closest('.check-btn');
   if(checkBtn){
     const id = checkBtn.dataset.id;
-    const t = tasks.find(x=>x.id === id);
-    if(t){
-      t.done = !t.done;
-      saveTasks();
-      renderAll();
-    }
+    const t = tasks.find(x => x.id === id);
+    if(t){ t.done = !t.done; saveTasks(); renderAll(); }
     return;
   }
   const delBtn = e.target.closest('.del-btn');
   if(delBtn){
     const id = delBtn.dataset.del;
-    tasks = tasks.filter(x=>x.id !== id);
+    tasks = tasks.filter(x => x.id !== id);
     saveTasks();
     renderAll();
   }
@@ -705,20 +1102,18 @@ function handleListChange(e){
   const sel = e.target.closest('.wait-select');
   if(sel){
     const id = sel.dataset.waitchange;
-    const t = tasks.find(x=>x.id === id);
-    if(t){
-      t.waitStatus = sel.value;
-      saveTasks();
-      renderAll();
-    }
+    const t = tasks.find(x => x.id === id);
+    if(t){ t.waitStatus = sel.value; saveTasks(); renderAll(); }
   }
 }
 
-taskList.addEventListener('click', handleListClick);
-taskList.addEventListener('change', handleListChange);
-waitingArea.addEventListener('click', handleListClick);
+taskList.addEventListener('click',   handleListClick);
+taskList.addEventListener('change',  handleListChange);
+waitingArea.addEventListener('click',  handleListClick);
 waitingArea.addEventListener('change', handleListChange);
 
+/* ---------- init ------------------------------------------- */
+loadDict();
 loadTasks();
 renderAll();
 </script>
