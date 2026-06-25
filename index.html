@@ -530,6 +530,8 @@ function applyDict(text){
       if(result !== before) applied.push(entry);
     }
   }
+  // 辞書の連鎖適用で生じる重複敬称を除去（例: 友美先生先生 → 友美先生）
+  result = result.replace(/(先生|さん|様|くん|ちゃん)\1+/g, '$1');
   return {result, applied};
 }
 
