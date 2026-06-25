@@ -1016,27 +1016,57 @@ dictAddBtn.addEventListener('click', () => {
 });
 
 /* ---------- voice recognition ------------------------------- */
-let recognition = null;
-let isRecording  = false;
+let recognition    = null;
+let isRecording    = false;
+let finalTranscript = '';
+let silenceTimer   = null;
+const SILENCE_MS   = 1800; // 無音判定: 最後の認識から1.8秒で終了
+const START_DELAY  = 300;  // ボタン押下から録音開始まで0.3秒待つ
+
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 if(SpeechRecognition){
   recognition = new SpeechRecognition();
-  recognition.lang = 'ja-JP';
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
+  recognition.lang             = 'ja-JP';
+  recognition.continuous       = true;   // 途切れても録音継続
+  recognition.interimResults   = true;   // 中間結果で無音タイマーをリセット
+  recognition.maxAlternatives  = 1;
 
   recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    addTaskFromText(transcript);
+    clearTimeout(silenceTimer);
+    let interimText = '';
+    for(let i = event.resultIndex; i < event.results.length; i++){
+      const r = event.results[i];
+      if(r.isFinal){
+        finalTranscript += r[0].transcript;
+      }else{
+        interimText += r[0].transcript;
+      }
+    }
+    // 録音中のフィードバック（末尾15文字）
+    const preview = (finalTranscript + interimText).slice(-15);
+    if(preview) orbHint.textContent = `「${preview}…」`;
+    // 最後の音声から SILENCE_MS 後に終了
+    silenceTimer = setTimeout(() => recognition.stop(), SILENCE_MS);
   };
-  recognition.onerror = () => {
+
+  recognition.onerror = (e) => {
+    // no-speech は無音なだけなので無視して継続
+    if(e.error === 'no-speech') return;
+    clearTimeout(silenceTimer);
     showToast('うまく聞き取れませんでした');
+    finalTranscript = '';
     stopRecordingUI();
   };
+
   recognition.onend = () => {
+    clearTimeout(silenceTimer);
+    const text = finalTranscript.trim();
+    finalTranscript = '';
     stopRecordingUI();
+    if(text) addTaskFromText(text);
   };
+
 }else{
   textFallback.style.display = 'flex';
   orbHint.textContent = 'この端末では音声認識が使えないようです';
@@ -1045,11 +1075,12 @@ if(SpeechRecognition){
 function startRecordingUI(){
   isRecording = true;
   orb.classList.add('recording');
-  orbHint.textContent = '聞いています…';
+  orbHint.textContent = '話しかけてください…';
 }
 function stopRecordingUI(){
   isRecording = false;
   orb.classList.remove('recording');
+  orbHint.textContent = 'タップして話しかけてください';
 }
 
 orb.addEventListener('click', () => {
@@ -1060,15 +1091,22 @@ orb.addEventListener('click', () => {
     return;
   }
   if(isRecording){
+    // 手動停止: 無音タイマーを即発火して onend へ
+    clearTimeout(silenceTimer);
     recognition.stop();
     return;
   }
-  try{
-    recognition.start();
-    startRecordingUI();
-  }catch(e){
-    showToast('マイクを使えませんでした');
-  }
+  // 0.3秒待ってから録音開始（ボタン音・タップ音を拾わないため）
+  startRecordingUI();
+  setTimeout(() => {
+    try{
+      finalTranscript = '';
+      recognition.start();
+    }catch(e){
+      showToast('マイクを使えませんでした');
+      stopRecordingUI();
+    }
+  }, START_DELAY);
 });
 
 textSend.addEventListener('click', () => {
